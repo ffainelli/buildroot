@@ -120,6 +120,10 @@ endef
 
 define inner-autotools-package
 
+ifeq ($$($(2)_AUTORECONF)-$$($(2)_LIBTOOL_PATCH),YES-NO)
+$$(error $(1) must be autoreconf-ed, but refuses the libtool patch)
+endif
+
 ifndef $(2)_LIBTOOL_PATCH
  ifdef $(3)_LIBTOOL_PATCH
   $(2)_LIBTOOL_PATCH = $$($(3)_LIBTOOL_PATCH)
