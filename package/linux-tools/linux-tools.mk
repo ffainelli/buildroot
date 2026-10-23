@@ -8,7 +8,25 @@
 # Instead, we directly build in the sources of the linux package. We can do
 # that, because we're not building in the same location and the same files.
 #
-# So, all tools refer to $(LINUX_DIR) instead of $(@D).
+# So, all tools refer to $(LINUX_TOOLS_KDIR) to build, instead of $(@D).
+#
+# Which tools can be built, though, is checked against the kernel sources
+# in $(LINUX_SRCDIR), which is not $(LINUX_DIR), the kernel build directory,
+# when the kernel is built out of tree.
+#
+# The tools build in-tree, and we do not want to pollute the kernel sources
+# of an out-of-tree build. So in that case, we build in a shadow of the
+# kernel sources, which is a tree of real directories with symlinks to the
+# files.
+LINUX_TOOLS_KSRC = $(LINUX_SRCDIR)/tools
+LINUX_TOOLS_KDIR = $(if $(LINUX_OUT_OF_TREE),$(LINUX_TOOLS_BUILDDIR)/linux,$(LINUX_DIR))
+
+define LINUX_TOOLS_SHADOW_SOURCES
+	$(if $(LINUX_OUT_OF_TREE),\
+		support/scripts/symlink-tree -f tools $(LINUX_SRCDIR) $(LINUX_TOOLS_KDIR))
+endef
+# Must come first, before the hooks that tweak the kernel sources
+LINUX_TOOLS_PRE_CONFIGURE_HOOKS += LINUX_TOOLS_SHADOW_SOURCES
 
 # Note: we need individual tools makefiles to be included *before* we build
 # the list of build and install hooks below to guarantee that each tool has

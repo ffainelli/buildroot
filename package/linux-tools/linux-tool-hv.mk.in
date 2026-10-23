@@ -20,13 +20,13 @@ HV_MAKE_OPTS = CC="$(TARGET_CC)" CFLAGS="$(filter-out -g%,$(TARGET_CFLAGS))"
 
 define HV_BUILD_CMDS
 	$(Q)for prog in $(HV_PROGS_y); do \
-		if test ! -f $(LINUX_DIR)/tools/hv/$${prog}.c ; then \
+		if test ! -f $(LINUX_TOOLS_KSRC)/hv/$${prog}.c ; then \
 			printf "Your kernel version is too old and does not have the HyperV %s tool." "$${prog}" ; \
 			exit 1 ; \
 		fi; \
 	done
 
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(LINUX_DIR)/tools/hv \
+	$(TARGET_MAKE_ENV) $(MAKE) -C $(LINUX_TOOLS_KDIR)/tools/hv \
 		$(HV_MAKE_OPTS) \
 		$(HV_PROGS_y)
 endef
@@ -40,7 +40,7 @@ endif
 
 define HV_INSTALL_TARGET_CMDS
 	$(foreach prog,$(HV_PROGS_y), \
-		$(INSTALL) -m 0755 -D $(LINUX_DIR)/tools/hv/$(prog) \
+		$(INSTALL) -m 0755 -D $(LINUX_TOOLS_KDIR)/tools/hv/$(prog) \
 			$(TARGET_DIR)/usr/sbin/$(HV_$(prog))
 	)
 	$(HV_KVP_HELPER)

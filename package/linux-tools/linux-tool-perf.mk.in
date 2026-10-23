@@ -18,6 +18,11 @@ else
 PERF_ARCH=$(NORMALIZED_ARCH)
 endif
 
+# The python scripts run by the perf build are run through symlinks when
+# building out of tree: do not let python write its bytecode next to the
+# real script, in the kernel sources.
+PERF_MAKE_ENV = PYTHONDONTWRITEBYTECODE=1
+
 PERF_MAKE_FLAGS = \
 	$(LINUX_MAKE_FLAGS) \
 	JOBS=$(PARALLEL_JOBS) \
@@ -147,25 +152,25 @@ endif
 # For a POST_PATCH hook, tools/perf/Documentation/Makefile is not
 # guaranteed to exist yet.
 define PERF_DISABLE_DOCUMENTATION
-	if [ -f $(LINUX_DIR)/tools/perf/Documentation/Makefile ]; then \
-		printf "%%:\n\t@:\n" >$(LINUX_DIR)/tools/perf/Documentation/GNUmakefile; \
+	if [ -f $(LINUX_TOOLS_KDIR)/tools/perf/Documentation/Makefile ]; then \
+		printf "%%:\n\t@:\n" >$(LINUX_TOOLS_KDIR)/tools/perf/Documentation/GNUmakefile; \
 	fi
 endef
 LINUX_TOOLS_PRE_CONFIGURE_HOOKS += PERF_DISABLE_DOCUMENTATION
 
 # O must be redefined here to overwrite the one used by Buildroot for
-# out of tree build. We build perf in $(LINUX_DIR)/tools/perf/ and not just
+# out of tree build. We build perf in $(LINUX_TOOLS_KDIR)/tools/perf/ and not just
 # $(LINUX_DIR) so that it isn't built in the root directory of the kernel
 # sources.
 define PERF_BUILD_CMDS
-	$(Q)if test ! -f $(LINUX_DIR)/tools/perf/Makefile ; then \
+	$(Q)if test ! -f $(LINUX_TOOLS_KSRC)/perf/Makefile ; then \
 		echo "Your kernel version is too old and does not have the perf tool." ; \
 		echo "At least kernel 2.6.31 must be used." ; \
 		exit 1 ; \
 	fi
 	$(Q)if test "$(BR2_PACKAGE_ELFUTILS)" = "" ; then \
-		if ! grep -q NO_LIBELF $(LINUX_DIR)/tools/perf/Makefile* ; then \
-			if ! test -r $(LINUX_DIR)/tools/perf/config/Makefile ; then \
+		if ! grep -q NO_LIBELF $(LINUX_TOOLS_KSRC)/perf/Makefile* ; then \
+			if ! test -r $(LINUX_TOOLS_KSRC)/perf/config/Makefile ; then \
 				echo "The perf tool in your kernel cannot be built without libelf." ; \
 				echo "Either upgrade your kernel to >= 3.7, or enable the elfutils package." ; \
 				exit 1 ; \
@@ -173,14 +178,14 @@ define PERF_BUILD_CMDS
 		fi \
 	fi
 	$(Q)if test "$(BR2_PACKAGE_LINUX_TOOLS_PERF_TUI)" = "y" ; then \
-		if ! grep -q NO_SLANG $(LINUX_DIR)/tools/perf/Makefile* ; then \
+		if ! grep -q NO_SLANG $(LINUX_TOOLS_KSRC)/perf/Makefile* ; then \
 			echo "The perf tool in your kernel cannot be build with the TUI." ; \
 			echo "Either upgrade your kernel to >= 3.10, or disable the TUI." ; \
 			exit 1 ; \
 		fi \
 	fi
-	$(TARGET_MAKE_ENV) $(MAKE1) $(PERF_MAKE_FLAGS) \
-		-C $(LINUX_DIR)/tools/perf O=$(LINUX_DIR)/tools/perf/
+	$(TARGET_MAKE_ENV) $(PERF_MAKE_ENV) $(MAKE1) $(PERF_MAKE_FLAGS) \
+		-C $(LINUX_TOOLS_KDIR)/tools/perf O=$(LINUX_TOOLS_KDIR)/tools/perf/
 endef
 
 # After installation, we remove the Perl and Python scripts from the
@@ -196,8 +201,8 @@ LINUX_TOOLS_BIN_ARCH_EXCLUDE += \
 endif
 
 define PERF_INSTALL_TARGET_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE1) $(PERF_MAKE_FLAGS) \
-		-C $(LINUX_DIR)/tools/perf O=$(LINUX_DIR)/tools/perf/ install
+	$(TARGET_MAKE_ENV) $(PERF_MAKE_ENV) $(MAKE1) $(PERF_MAKE_FLAGS) \
+		-C $(LINUX_TOOLS_KDIR)/tools/perf O=$(LINUX_TOOLS_KDIR)/tools/perf/ install
 	$(PERF_INSTALL_REMOVE_SCRIPTS)
 endef
 

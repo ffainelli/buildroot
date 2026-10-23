@@ -27,11 +27,14 @@ SELFTESTS_MAKE_FLAGS = \
 	KHDR_DIR=$(LINUX_DIR)/usr/include \
 	KHDR_INCLUDES="-isystem $(LINUX_DIR)/usr/include"
 
+# The ynl library of the net selftests is built with the host compiler
 LINUX_TOOLS_BIN_ARCH_EXCLUDE += \
-	/usr/lib/kselftests/tc-testing/
+	/usr/lib/kselftests/tc-testing/ \
+	/usr/lib/kselftests/net/lib/ynl/ \
+	/usr/lib/kselftests/drivers/net/
 
 # O must be redefined here to overwrite the one used by Buildroot for
-# out of tree build. We build the selftests in $(LINUX_DIR)/tools/selftests and
+# out of tree build. We build the selftests in $(LINUX_TOOLS_KDIR)/tools/selftests and
 # not just $(LINUX_DIR) so that it isn't built in the root directory of the kernel
 # sources.
 #
@@ -43,12 +46,12 @@ LINUX_TOOLS_BIN_ARCH_EXCLUDE += \
 define SELFTESTS_BUILD_CMDS
 	$(TARGET_MAKE_ENV) $(MAKE1) -C $(LINUX_DIR) $(SELFTESTS_MAKE_FLAGS) \
 		headers_install
-	$(TARGET_MAKE_ENV) $(MAKE1) -C $(LINUX_DIR)/tools/testing/selftests \
-		$(SELFTESTS_MAKE_FLAGS) O=$(LINUX_DIR)/tools/testing/selftests
+	$(TARGET_MAKE_ENV) $(MAKE1) -C $(LINUX_TOOLS_KDIR)/tools/testing/selftests \
+		$(SELFTESTS_MAKE_FLAGS) O=$(LINUX_TOOLS_KDIR)/tools/testing/selftests
 endef
 
 define SELFTESTS_INSTALL_TARGET_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE1) -C $(LINUX_DIR)/tools/testing/selftests \
-		$(SELFTESTS_MAKE_FLAGS) O=$(LINUX_DIR)/tools/testing/selftests \
+	$(TARGET_MAKE_ENV) $(MAKE1) -C $(LINUX_TOOLS_KDIR)/tools/testing/selftests \
+		$(SELFTESTS_MAKE_FLAGS) O=$(LINUX_TOOLS_KDIR)/tools/testing/selftests \
 		INSTALL_PATH=$(TARGET_DIR)/usr/lib/kselftests install
 endef

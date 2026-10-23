@@ -7,16 +7,16 @@
 LINUX_TOOLS += mm
 
 define MM_BUILD_CMDS
-	$(Q)if test -f $(LINUX_DIR)/tools/vm/Makefile ; then \
+	$(Q)if test -f $(LINUX_TOOLS_KSRC)/vm/Makefile ; then \
 		MM_SUBDIR=vm; \
-	elif test -f $(LINUX_DIR)/tools/mm/Makefile ; then \
+	elif test -f $(LINUX_TOOLS_KSRC)/mm/Makefile ; then \
 		MM_SUBDIR=mm; \
 	else \
 		echo "Your kernel version is too old and does not have the mm tool." ; \
 		echo "At least kernel 3.4 must be used." ; \
 		exit 1 ; \
 	fi ; \
-	$(TARGET_MAKE_ENV) $(MAKE) $(LINUX_MAKE_FLAGS) -C $(LINUX_DIR)/tools \
+	$(TARGET_MAKE_ENV) $(MAKE) $(LINUX_MAKE_FLAGS) -C $(LINUX_TOOLS_KDIR)/tools \
 		$(MM_MAKE_OPTS) $${MM_SUBDIR}
 endef
 
@@ -24,12 +24,12 @@ endef
 # exists, because that was checked at build time already; we just
 # need to find which of the two: if not one, then the other.
 define MM_INSTALL_TARGET_CMDS
-	$(Q)if test -f $(LINUX_DIR)/tools/vm/Makefile ; then \
+	$(Q)if test -f $(LINUX_TOOLS_KSRC)/vm/Makefile ; then \
 		MM_SUBDIR=vm; \
 	else \
 		MM_SUBDIR=mm; \
 	fi ; \
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(LINUX_DIR)/tools \
+	$(TARGET_MAKE_ENV) $(MAKE) -C $(LINUX_TOOLS_KDIR)/tools \
 		$(LINUX_MAKE_FLAGS) \
 		INSTALL_ROOT=$(TARGET_DIR) \
 		DESTDIR=$(TARGET_DIR) \

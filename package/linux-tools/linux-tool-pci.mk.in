@@ -7,11 +7,13 @@
 LINUX_TOOLS += pci
 
 # Linux 6.14 moved the PCI endpoint tests into Kselftests.
-PCI_SRCDIR = $(strip $(if $(wildcard $(LINUX_DIR)/tools/testing/selftests/pci_endpoint/Makefile),\
-	$(LINUX_DIR)/tools/testing/selftests/pci_endpoint,$(LINUX_DIR)/tools/pci))
+PCI_SUBDIR = $(strip $(if $(wildcard $(LINUX_TOOLS_KSRC)/testing/selftests/pci_endpoint/Makefile),\
+	testing/selftests/pci_endpoint,pci))
+PCI_SRCDIR = $(LINUX_TOOLS_KSRC)/$(PCI_SUBDIR)
+PCI_BUILDDIR = $(LINUX_TOOLS_KDIR)/tools/$(PCI_SUBDIR)
 
 PCI_MAKE_OPTS = $(LINUX_MAKE_FLAGS) \
-	OUTPUT=$(PCI_SRCDIR)/ \
+	OUTPUT=$(PCI_BUILDDIR)/ \
 	LDFLAGS="$(TARGET_LDFLAGS)" \
 	LDLIBS="-lrt -lm"
 
@@ -22,12 +24,12 @@ define PCI_BUILD_CMDS
 		exit 1 ; \
 	fi
 
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(PCI_SRCDIR) \
+	$(TARGET_MAKE_ENV) $(MAKE) -C $(PCI_BUILDDIR) \
 		$(PCI_MAKE_OPTS)
 endef
 
 define PCI_INSTALL_TARGET_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(PCI_SRCDIR) \
+	$(TARGET_MAKE_ENV) $(MAKE) -C $(PCI_BUILDDIR) \
 		$(PCI_MAKE_OPTS) \
 		DESTDIR=$(TARGET_DIR) \
 		INSTALL_PATH=$(TARGET_DIR)/usr/lib/kselftests/pci_endpoint \
