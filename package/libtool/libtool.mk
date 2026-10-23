@@ -45,8 +45,8 @@ define LIBTOOL_AVOID_AUTORECONF_HOOK
 	find $(@D) -name configure -exec touch '{}' \;
 	find $(@D) -name Makefile.in -exec touch '{}' \;
 endef
-LIBTOOL_PRE_CONFIGURE_HOOKS += LIBTOOL_AVOID_AUTORECONF_HOOK
-HOST_LIBTOOL_PRE_CONFIGURE_HOOKS += LIBTOOL_AVOID_AUTORECONF_HOOK
+LIBTOOL_POST_PATCH_HOOKS += LIBTOOL_AVOID_AUTORECONF_HOOK
+HOST_LIBTOOL_POST_PATCH_HOOKS += LIBTOOL_AVOID_AUTORECONF_HOOK
 
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
