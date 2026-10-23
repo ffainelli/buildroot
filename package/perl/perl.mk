@@ -31,6 +31,7 @@ define PERL_CROSS_EXTRACT
 	mv $(@D)/cnf/diffs/perl5-5.42.0 $(@D)/cnf/diffs/perl5-5.42.3
 endef
 PERL_POST_EXTRACT_HOOKS += PERL_CROSS_EXTRACT
+HOST_PERL_POST_EXTRACT_HOOKS += PERL_CROSS_EXTRACT
 
 # We need to patch perl-cross, but perl-cross is extracted over the
 # target perl sources only (and not the host variant). So we apply the
@@ -46,6 +47,7 @@ PERL_POST_PATCH_HOOKS += PERL_CROSS_PATCH
 # on newer host architectures, so we borrow the hook which updates them from the
 # autotools infrastructure.
 PERL_POST_PATCH_HOOKS += UPDATE_CONFIG_HOOK
+HOST_PERL_POST_PATCH_HOOKS += UPDATE_CONFIG_HOOK
 
 ifeq ($(BR2_PACKAGE_BERKELEYDB),y)
 PERL_DEPENDENCIES += berkeleydb
