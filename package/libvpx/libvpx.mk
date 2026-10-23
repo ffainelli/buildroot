@@ -30,7 +30,7 @@ endif
 
 # This is not a true autotools package.  It is based on the ffmpeg build system
 define LIBVPX_CONFIGURE_CMDS
-	(cd $(LIBVPX_SRCDIR) && rm -rf config.cache && \
+	(cd $(@D) && rm -rf config.cache && \
 	$(TARGET_CONFIGURE_OPTS) \
 	$(TARGET_CONFIGURE_ARGS) \
 	$(LIBVPX_CONF_ENV) \
