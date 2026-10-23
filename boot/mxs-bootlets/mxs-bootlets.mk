@@ -56,7 +56,7 @@ endif
 
 ifeq ($(BR2_TARGET_MXS_BOOTLETS_BAREBOX),y)
 define MXS_BOOTLETS_SED_BAREBOX
-	sed -i 's,[^ *]barebox.*;,\tbarebox="$(BAREBOX_DIR)/barebox";,' $(@D)/$(MXS_BOOTLETS_BOOTDESC)
+	sed -i 's,[^ *]barebox.*;,\tbarebox="$(BAREBOX_BUILDDIR)/barebox";,' $(@D)/$(MXS_BOOTLETS_BOOTDESC)
 endef
 endif
 
@@ -67,13 +67,13 @@ define MXS_BOOTLETS_BUILD_LINUX_PREP
 endef
 define MXS_BOOTLETS_SED_LINUX
 	sed -i 's,[^ *]linux_prep.*;,\tlinux_prep="$(@D)/linux_prep/output-target/linux_prep";,' $(@D)/$(MXS_BOOTLETS_BOOTDESC)
-	sed -i 's,[^ *]zImage.*;,\tzImage="$(LINUX_DIR)/arch/arm/boot/zImage";,' $(@D)/$(MXS_BOOTLETS_BOOTDESC)
+	sed -i 's,[^ *]zImage.*;,\tzImage="$(LINUX_BUILDDIR)/arch/arm/boot/zImage";,' $(@D)/$(MXS_BOOTLETS_BOOTDESC)
 endef
 endif
 
 ifeq ($(BR2_TARGET_MXS_BOOTLETS_UBOOT),y)
 define MXS_BOOTLETS_SED_UBOOT
-	sed -i 's,[^ *]u_boot.*;,\tu_boot="$(UBOOT_DIR)/u-boot";,' $(@D)/$(MXS_BOOTLETS_BOOTDESC)
+	sed -i 's,[^ *]u_boot.*;,\tu_boot="$(UBOOT_BUILDDIR)/u-boot";,' $(@D)/$(MXS_BOOTLETS_BOOTDESC)
 endef
 endif
 
