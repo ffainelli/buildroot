@@ -27,8 +27,8 @@ endif
 
 # Prepare kernel patch
 define XENOMAI_PREPARE_KERNEL
-	$(XENOMAI_DIR)/scripts/prepare-kernel.sh \
-		--linux=$(LINUX_DIR) \
+	$(XENOMAI_SRCDIR)/scripts/prepare-kernel.sh \
+		--linux=$(@D) \
 		--arch=$(KERNEL_ARCH) \
 		$(XENOMAI_ADEOS_OPTS) \
 		--verbose
