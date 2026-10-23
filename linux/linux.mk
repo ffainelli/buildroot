@@ -6,6 +6,10 @@
 
 LINUX_VERSION = $(call qstrip,$(BR2_LINUX_KERNEL_VERSION))
 LINUX_LICENSE = GPL-2.0
+
+# When LINUX_OVERRIDE_SRCDIR is set, build out of tree: no rsync of the
+# sources, the kernel is built in $(BUILD_DIR)/linux-custom with O=.
+LINUX_SUPPORTS_OUT_OF_TREE = YES
 LINUX_LICENSE_FILES = $(call qstrip,$(BR2_LINUX_KERNEL_LICENSE_FILES))
 
 LINUX_CPE_ID_VENDOR = linux

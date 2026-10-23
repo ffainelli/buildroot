@@ -221,11 +221,11 @@ $(SRC_DIR)/%/.stamp_extracted:
 # used.
 $(SRC_DIR)/%/.stamp_rsynced:
 	@$(call step_start,rsync)
-	@$(call MESSAGE,"Syncing from source dir $(SRCDIR)")
+	@$(call MESSAGE,"$(if $($(PKG)_OUT_OF_TREE),Using out-of-tree source dir,Syncing from source dir) $(SRCDIR)")
 	@mkdir -p $(@D)
 	$(foreach hook,$($(PKG)_PRE_RSYNC_HOOKS),$(call $(hook))$(sep))
 	@test -d $(SRCDIR) || (echo "ERROR: $(SRCDIR) does not exist" ; exit 1)
-	rsync -au --chmod=u=rwX,go=rX $($(PKG)_OVERRIDE_SRCDIR_RSYNC_EXCLUSIONS) $(RSYNC_VCS_EXCLUSIONS) $(call qstrip,$(SRCDIR))/ $(@D)
+	$(if $($(PKG)_OUT_OF_TREE),,rsync -au --chmod=u=rwX,go=rX $($(PKG)_OVERRIDE_SRCDIR_RSYNC_EXCLUSIONS) $(RSYNC_VCS_EXCLUSIONS) $(call qstrip,$(SRCDIR))/ $(@D))
 	$(foreach hook,$($(PKG)_POST_RSYNC_HOOKS),$(call $(hook))$(sep))
 	@$(call step_end,rsync)
 	$(Q)touch $@
@@ -559,11 +559,25 @@ ifndef $(2)_STRIP_COMPONENTS
 endif
 
 $(2)_SRCDIR = $$($(2)_DIR)
-$(2)_BUILDDIR = $$($(2)_DIR)
+$(2)_BUILDDIR ?= $$($(2)_DIR)
 $(2)_SRCSUBDIR = $$($(2)_SRCDIR)/$$($(2)_SUBDIR)
 
 ifneq ($$($(2)_OVERRIDE_SRCDIR),)
 $(2)_VERSION = custom
+endif
+
+# Packages that set <pkg>_SUPPORTS_OUT_OF_TREE = YES can be built out of
+# tree when their source directory is overridden: the sources are used
+# where they are (no rsync), and only the build directory lives in
+# $(BUILD_DIR). The source-related stamp files must then not be created
+# in the (user-owned) source directory, so they live in the build directory.
+$(2)_STAMP_SRCDIR = $$($(2)_SRCDIR)
+ifneq ($$($(2)_OVERRIDE_SRCDIR),)
+ifeq ($$($(3)_SUPPORTS_OUT_OF_TREE),YES)
+$(2)_OUT_OF_TREE = YES
+$(2)_SRCDIR = $$(abspath $$(call qstrip,$$($(2)_OVERRIDE_SRCDIR)))
+$(2)_STAMP_SRCDIR = $$($(2)_BUILDDIR)
+endif
 endif
 
 ifndef $(2)_SOURCE
@@ -844,11 +858,11 @@ $(2)_TARGET_INSTALL_IMAGES =	$$($(2)_BUILDDIR)/.stamp_images_installed
 $(2)_TARGET_INSTALL_HOST =	$$($(2)_BUILDDIR)/.stamp_host_installed
 $(2)_TARGET_BUILD =		$$($(2)_BUILDDIR)/.stamp_built
 $(2)_TARGET_CONFIGURE =		$$($(2)_BUILDDIR)/.stamp_configured
-$(2)_TARGET_RSYNC =		$$($(2)_SRCDIR)/.stamp_rsynced
-$(2)_TARGET_PATCH =		$$($(2)_SRCDIR)/.stamp_patched
-$(2)_TARGET_EXTRACT =		$$($(2)_SRCDIR)/.stamp_extracted
-$(2)_TARGET_SOURCE =		$$($(2)_SRCDIR)/.stamp_downloaded
-$(2)_TARGET_ACTUAL_SOURCE =	$$($(2)_SRCDIR)/.stamp_actual_downloaded
+$(2)_TARGET_RSYNC =		$$($(2)_STAMP_SRCDIR)/.stamp_rsynced
+$(2)_TARGET_PATCH =		$$($(2)_STAMP_SRCDIR)/.stamp_patched
+$(2)_TARGET_EXTRACT =		$$($(2)_STAMP_SRCDIR)/.stamp_extracted
+$(2)_TARGET_SOURCE =		$$($(2)_STAMP_SRCDIR)/.stamp_downloaded
+$(2)_TARGET_ACTUAL_SOURCE =	$$($(2)_STAMP_SRCDIR)/.stamp_actual_downloaded
 $(2)_TARGET_DIRCLEAN =		$$($(2)_BUILDDIR)/.stamp_dircleaned
 
 # default extract command

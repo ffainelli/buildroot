@@ -147,8 +147,12 @@ $$($(2)_KCONFIG_FILE) $$($(2)_KCONFIG_FRAGMENT_FILES): | $(1)-patch
 		fi; \
 	done
 
+# For an out-of-tree build, the first kconfig run is what creates the
+# wrapper Makefile in the build directory, so it must be started from
+# the source directory.
 $(2)_KCONFIG_MAKE = \
-	$$($(2)_MAKE_ENV) $$($(2)_MAKE) -C $$($(2)_BUILDDIR) \
+	$$($(2)_MAKE_ENV) $$($(2)_MAKE) \
+	$$(if $$($(2)_OUT_OF_TREE),-C $$($(2)_SRCDIR) O=$$($(2)_BUILDDIR),-C $$($(2)_BUILDDIR)) \
 		$$(PKG_KCONFIG_COMMON_OPTS) $$($(2)_KCONFIG_OPTS)
 
 # The specified source configuration file and any additional configuration file
