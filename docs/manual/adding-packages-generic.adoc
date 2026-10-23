@@ -666,6 +666,17 @@ In the action definitions, you can use the following variables:
 * +$(@D)+, which contains the directory in which the package source
   code has been uncompressed.
 
+* +$(LIBFOO_SRCDIR)+ is the directory containing the package sources,
+  +$(LIBFOO_SRCSUBDIR)+ is the same directory with +LIBFOO_SUBDIR+
+  appended, and +$(LIBFOO_BUILDDIR)+ is the directory in which the package
+  is built. By default, these all point to +$(@D)+, but they can differ:
+  build systems that build out of source set +$(LIBFOO_BUILDDIR)+ to a
+  sub-directory, and a package built out of tree from an
+  +LIBFOO_OVERRIDE_SRCDIR+ has its sources in the overridden directory. A
+  recipe that only reads the package sources (for example to copy a header)
+  should use +$(LIBFOO_SRCDIR)+ rather than +$(@D)+, which is the build
+  directory. See xref:outoftree-build[] for more details.
+
 * +$(LIBFOO_DL_DIR)+ contains the path to the directory where all the downloads
   made by Buildroot for +libfoo+ are stored in.
 

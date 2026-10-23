@@ -119,3 +119,33 @@ cost of a slower speed, add these directories back:
 ----
 LINUX_OVERRIDE_SRCDIR_RSYNC_EXCLUSIONS = --include .git
 ----
+
+[[outoftree-build]]
+===== Building out of tree with +<pkg>_OVERRIDE_SRCDIR+
+
+A package can opt in to being built out of tree by setting
++LIBFOO_SUPPORTS_OUT_OF_TREE = YES+. For such a package, when
++LIBFOO_OVERRIDE_SRCDIR+ is set, Buildroot does not _rsync_ the sources to
++output/build/<package>-custom/+. Instead, the package is built from the
+overridden directory, with all the generated files, including the stamp
+files, stored in +output/build/<package>-custom/+. The overridden directory
+is therefore not modified by the build. The +<pkg>_PRE_RSYNC_HOOKS+ and
++<pkg>_POST_RSYNC_HOOKS+ hooks are still run, but +$(@D)+ then does not
+contain the sources: hooks should use +$(LIBFOO_SRCDIR)+ to access them.
+
+Currently the +linux+ package supports this. The kernel source tree must be
+clean (no +.config+, +include/config+ or +arch/*/include/generated+, as
+required by the kernel when using +O=+); run +make mrproper+ in it if
+needed. The kernel is configured and built with +O=+ pointing to
++output/build/linux-custom/+.
+
+When a custom logo (+BR2_LINUX_KERNEL_CUSTOM_LOGO_PATH+) or custom device
+tree files (+BR2_LINUX_KERNEL_CUSTOM_DTS_PATH+) are used, or when
++linux-tools+ are enabled, Buildroot has to add files to, or build inside,
+the kernel sources. To avoid modifying the overridden directory, it then
+builds from a _shadow_ copy: a tree of real directories containing
+symbolic links to the files of the original tree, created by
++support/scripts/symlink-tree+.
+
+Packages that read files from the kernel sources, such as headers, must use
++$(LINUX_SRCDIR)+ and not +$(LINUX_DIR)+.
