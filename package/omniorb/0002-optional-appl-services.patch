@@ -1,0 +1,29 @@
+Add support for EmbeddedSystemWithApps
+
+The EmbeddedSystem option allows to disable building a lot of things
+from omniorb: tools, apps, services, python bindings, and more.
+
+However, there are situations where we want to disable all of these
+things, except apps and services. Therefore, as a quick workaround,
+this patch adds support for a EmbeddedSystemWithApps, which when
+defined, will build apps and services even if EmbeddedSystem is
+defined.
+
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Upstream: N/A (Buildroot specific)
+
+Index: b/src/dir.mk
+===================================================================
+--- a/src/dir.mk
++++ b/src/dir.mk
+@@ -16,6 +16,10 @@
+ SUBDIRS += appl services
+ endif
+ 
++ifdef EmbeddedSystemWithApps
++SUBDIRS += appl services
++endif
++
+ all::
+ 	@echo
+ 	@echo 'No "all" rule here.  If you want to build and export everything'

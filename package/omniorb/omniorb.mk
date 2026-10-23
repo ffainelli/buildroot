@@ -34,19 +34,6 @@ ifeq ($(BR2_PACKAGE_ZLIB),y)
 OMNIORB_DEPENDENCIES += zlib
 endif
 
-# The EmbeddedSystem define (set below in OMNIORB_ADJUST_TOOLDIR)
-# enables building of just the lib and disables building of
-# tools/apps/services.  In some cases the apps/services are still
-# required.  The tools however are host related and should never
-# be required on target.
-define OMNIORB_ENABLE_EXTRA_APPS
-	$(SED) 's:SUBDIRS += lib:SUBDIRS += lib appl services:g' $(@D)/src/dir.mk
-endef
-
-ifeq ($(BR2_PACKAGE_OMNIORB_WITH_APPS),y)
-OMNIORB_POST_PATCH_HOOKS += OMNIORB_ENABLE_EXTRA_APPS
-endif
-
 ifeq ($(BR2_STATIC_LIBS),y)
 define OMNIORB_DISABLE_SHARED
 	echo "BuildSharedLibrary =" >> $(@D)/mk/beforeauto.mk
@@ -66,6 +53,19 @@ define OMNIORB_ADJUST_TOOLDIR
 	echo "EmbeddedSystem=1" >> $(@D)/mk/beforeauto.mk
 endef
 OMNIORB_POST_CONFIGURE_HOOKS += OMNIORB_ADJUST_TOOLDIR
+
+ifeq ($(BR2_PACKAGE_OMNIORB_WITH_APPS),y)
+# The EmbeddedSystem define (set above in OMNIORB_ADJUST_TOOLDIR)
+# enables building of just the lib and disables building of
+# tools/apps/services.  In some cases the apps/services are still
+# required.  The tools however are host related and should never
+# be required on target.
+define OMNIORB_ENABLE_EXTRA_APPS
+	echo "EmbeddedSystemWithApps=1" >> $(@D)/mk/beforeauto.mk
+endef
+
+OMNIORB_POST_CONFIGURE_HOOKS += OMNIORB_ENABLE_EXTRA_APPS
+endif
 
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
