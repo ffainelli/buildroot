@@ -23,7 +23,7 @@ GST1_IMX_CONF_OPTS = --prefix="/usr"
 ifeq ($(BR2_LINUX_KERNEL),y)
 # IPU and PXP need access to imx-specific kernel headers
 GST1_IMX_DEPENDENCIES += linux
-GST1_IMX_CONF_OPTS += --kernel-headers="$(LINUX_DIR)/include"
+GST1_IMX_CONF_OPTS += --kernel-headers="$(LINUX_SRCDIR)/include"
 endif
 
 ifeq ($(BR2_PACKAGE_IMX_CODEC),y)

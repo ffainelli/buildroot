@@ -15,6 +15,6 @@ IMX_ALSA_PLUGINS_AUTORECONF = YES
 
 # needs access to imx-specific kernel headers
 IMX_ALSA_PLUGINS_DEPENDENCIES += linux
-IMX_ALSA_PLUGINS_CONF_ENV += CPPFLAGS="$(TARGET_CPPFLAGS) -idirafter $(LINUX_DIR)/include/uapi"
+IMX_ALSA_PLUGINS_CONF_ENV += CPPFLAGS="$(TARGET_CPPFLAGS) -idirafter $(LINUX_SRCDIR)/include/uapi"
 
 $(eval $(autotools-package))

@@ -15,7 +15,7 @@ IMX_LIB_INSTALL_STAGING = YES
 # imx-lib needs access to imx-specific kernel headers
 IMX_LIB_DEPENDENCIES += linux
 IMX_LIB_INCLUDE = \
-	-idirafter $(LINUX_DIR)/include/uapi
+	-idirafter $(LINUX_SRCDIR)/include/uapi
 
 IMX_LIB_MAKE_ENV = \
 	$(TARGET_MAKE_ENV) \

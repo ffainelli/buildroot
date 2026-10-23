@@ -12,7 +12,7 @@ A10DISP_LICENSE_FILES = a10disp.c
 A10DISP_DEPENDENCIES = linux
 
 define A10DISP_BUILD_CMDS
-	cp -f $(LINUX_DIR)/include/video/sunxi_disp_ioctl.h $(@D)/
+	cp -f $(LINUX_SRCDIR)/include/video/sunxi_disp_ioctl.h $(@D)/
 	$(TARGET_CC) $(TARGET_CFLAGS) $(@D)/a10disp.c -o $(@D)/a10disp
 endef
 
