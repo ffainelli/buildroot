@@ -26,7 +26,6 @@ HOST_LIBTOOL_LICENSE = GPL-2.0+ (libtool), LGPL-2.1+ (libltdl)
 HOST_LIBTOOL_LICENSE_FILES = COPYING $(LIBTOOL_SUBDIR)/COPYING.LIB
 
 HOST_LIBTOOL_CONF_ENV = HELP2MAN=true MAKEINFO=true
-HOST_LIBTOOL_LIBTOOL_PATCH = NO
 
 # We have a patch that affects libtool.m4, which triggers an autoreconf
 # in the build step. Normally we would set AUTORECONF = YES, but this

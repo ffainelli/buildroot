@@ -243,10 +243,6 @@ else
 $(2)_AUTORECONF_ENV += AUTOPOINT=/bin/true
 endif
 $(2)_PRE_CONFIGURE_HOOKS += AUTORECONF_HOOK
-# default values are not evaluated yet, so don't rely on this defaulting to YES
-ifneq ($$($(2)_LIBTOOL_PATCH),NO)
-$(2)_PRE_CONFIGURE_HOOKS += LIBTOOL_PATCH_HOOK
-endif
 $(2)_DEPENDENCIES += host-automake host-autoconf host-libtool
 
 else # ! AUTORECONF = YES
