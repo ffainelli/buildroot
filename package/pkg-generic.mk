@@ -171,7 +171,7 @@ endef
 ################################################################################
 
 # Retrieve the archive
-$(BUILD_DIR)/%/.stamp_downloaded:
+$(SRC_DIR)/%/.stamp_downloaded:
 	@$(call step_start,download)
 	$(call prepare-per-package-directory,$($(PKG)_FINAL_DOWNLOAD_DEPENDENCIES))
 	$(foreach hook,$($(PKG)_PRE_DOWNLOAD_HOOKS),$(call $(hook))$(sep))
@@ -196,7 +196,7 @@ $(BUILD_DIR)/%/.stamp_downloaded:
 	$(Q)touch $@
 
 # Retrieve actual source archive, e.g. for prebuilt external toolchains
-$(BUILD_DIR)/%/.stamp_actual_downloaded:
+$(SRC_DIR)/%/.stamp_actual_downloaded:
 	@$(call step_start,actual-download)
 	$(call DOWNLOAD,$($(PKG)_ACTUAL_SOURCE_SITE)/$($(PKG)_ACTUAL_SOURCE_TARBALL))
 	$(Q)mkdir -p $(@D)
@@ -204,7 +204,7 @@ $(BUILD_DIR)/%/.stamp_actual_downloaded:
 	$(Q)touch $@
 
 # Unpack the archive
-$(BUILD_DIR)/%/.stamp_extracted:
+$(SRC_DIR)/%/.stamp_extracted:
 	@$(call step_start,extract)
 	@$(call MESSAGE,"Extracting")
 	$(call prepare-per-package-directory,$($(PKG)_FINAL_EXTRACT_DEPENDENCIES))
@@ -219,7 +219,7 @@ $(BUILD_DIR)/%/.stamp_extracted:
 
 # Rsync the source directory if the <pkg>_OVERRIDE_SRCDIR feature is
 # used.
-$(BUILD_DIR)/%/.stamp_rsynced:
+$(SRC_DIR)/%/.stamp_rsynced:
 	@$(call step_start,rsync)
 	@$(call MESSAGE,"Syncing from source dir $(SRCDIR)")
 	@mkdir -p $(@D)
@@ -231,7 +231,7 @@ $(BUILD_DIR)/%/.stamp_rsynced:
 	$(Q)touch $@
 
 # Patch
-$(BUILD_DIR)/%/.stamp_patched:
+$(SRC_DIR)/%/.stamp_patched:
 	@$(call step_start,patch)
 	@$(call MESSAGE,"Patching")
 	$(foreach hook,$($(PKG)_PRE_PATCH_HOOKS),$(call $(hook))$(sep))
@@ -836,19 +836,19 @@ $(2)_FINAL_RECURSIVE_RDEPENDENCIES = $$(sort \
 	$$($(2)_FINAL_RECURSIVE_RDEPENDENCIES__X))
 
 # define sub-target stamps
-$(2)_TARGET_INSTALL =           $$($(2)_DIR)/.stamp_installed
-$(2)_TARGET_INSTALL_TARGET =	$$($(2)_DIR)/.stamp_target_installed
-$(2)_TARGET_INSTALL_STAGING =	$$($(2)_DIR)/.stamp_staging_installed
-$(2)_TARGET_INSTALL_IMAGES =	$$($(2)_DIR)/.stamp_images_installed
-$(2)_TARGET_INSTALL_HOST =	$$($(2)_DIR)/.stamp_host_installed
-$(2)_TARGET_BUILD =		$$($(2)_DIR)/.stamp_built
-$(2)_TARGET_CONFIGURE =		$$($(2)_DIR)/.stamp_configured
-$(2)_TARGET_RSYNC =		$$($(2)_DIR)/.stamp_rsynced
-$(2)_TARGET_PATCH =		$$($(2)_DIR)/.stamp_patched
-$(2)_TARGET_EXTRACT =		$$($(2)_DIR)/.stamp_extracted
-$(2)_TARGET_SOURCE =		$$($(2)_DIR)/.stamp_downloaded
-$(2)_TARGET_ACTUAL_SOURCE =	$$($(2)_DIR)/.stamp_actual_downloaded
-$(2)_TARGET_DIRCLEAN =		$$($(2)_DIR)/.stamp_dircleaned
+$(2)_TARGET_INSTALL =           $$($(2)_BUILDDIR)/.stamp_installed
+$(2)_TARGET_INSTALL_TARGET =	$$($(2)_BUILDDIR)/.stamp_target_installed
+$(2)_TARGET_INSTALL_STAGING =	$$($(2)_BUILDDIR)/.stamp_staging_installed
+$(2)_TARGET_INSTALL_IMAGES =	$$($(2)_BUILDDIR)/.stamp_images_installed
+$(2)_TARGET_INSTALL_HOST =	$$($(2)_BUILDDIR)/.stamp_host_installed
+$(2)_TARGET_BUILD =		$$($(2)_BUILDDIR)/.stamp_built
+$(2)_TARGET_CONFIGURE =		$$($(2)_BUILDDIR)/.stamp_configured
+$(2)_TARGET_RSYNC =		$$($(2)_SRCDIR)/.stamp_rsynced
+$(2)_TARGET_PATCH =		$$($(2)_SRCDIR)/.stamp_patched
+$(2)_TARGET_EXTRACT =		$$($(2)_SRCDIR)/.stamp_extracted
+$(2)_TARGET_SOURCE =		$$($(2)_SRCDIR)/.stamp_downloaded
+$(2)_TARGET_ACTUAL_SOURCE =	$$($(2)_SRCDIR)/.stamp_actual_downloaded
+$(2)_TARGET_DIRCLEAN =		$$($(2)_BUILDDIR)/.stamp_dircleaned
 
 # default extract command
 $(2)_EXTRACT_CMDS ?= \
@@ -1176,7 +1176,7 @@ else
 			$$$${f} \
 			$$($(2)_REDIST_SOURCES_DIR) || exit 1; \
 		printf "%s\n" "$$$${f##*/}" >>$$($(2)_REDIST_SOURCES_DIR)/series || exit 1; \
-	done <$$($(2)_DIR)/.applied_patches_list
+	done <$$($(2)_SRCDIR)/.applied_patches_list
 endif # other packages
 
 endif # redistribute
