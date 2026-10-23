@@ -602,6 +602,12 @@ ifndef $(2)_PATCH
  endif
 endif
 
+ifndef $(2)_EXTRA_DOWNLOADS
+ ifdef $(3)_EXTRA_DOWNLOADS
+  $(2)_EXTRA_DOWNLOADS = $$($(3)_EXTRA_DOWNLOADS)
+ endif
+endif
+
 $(2)_MAIN_DOWNLOAD = \
 	$$(if $$($(2)_SOURCE),$$($(2)_SITE_METHOD)+$$($(2)_SITE)/$$($(2)_SOURCE))
 
