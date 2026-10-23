@@ -37,7 +37,7 @@ NCFTP_DEPENDENCIES += ncurses
 endif
 
 define NCFTP_INSTALL_TARGET_CMDS
-	$(INSTALL) -m 0755 $(addprefix $(NCFTP_DIR)/bin/, $(NCFTP_TARGET_BINS)) $(TARGET_DIR)/usr/bin
+	$(INSTALL) -m 0755 $(addprefix $(@D)/bin/, $(NCFTP_TARGET_BINS)) $(TARGET_DIR)/usr/bin
 	$(NCFTP_INSTALL_NCFTP_BATCH)
 endef
 

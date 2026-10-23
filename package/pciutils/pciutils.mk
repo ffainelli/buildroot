@@ -46,7 +46,7 @@ PCIUTILS_MAKE_OPTS += SHARED=yes
 endif
 
 define PCIUTILS_CONFIGURE_CMDS
-	$(SED) 's/wget --no-timestamping/wget/' $(PCIUTILS_DIR)/update-pciids.sh
+	$(SED) 's/wget --no-timestamping/wget/' $(@D)/update-pciids.sh
 endef
 
 define PCIUTILS_BUILD_CMDS
