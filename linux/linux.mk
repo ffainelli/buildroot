@@ -226,7 +226,7 @@ LINUX_DTSO_NAMES += $(basename $(LINUX_DTSO_LIST))
 define LINUX_COPY_CUSTOM_DTS_FILES
 	$(foreach d, $(LINUX_KERNEL_CUSTOM_DTS_DIR), \
 		@$(call MESSAGE,"Copying devicetree overlay $(d)")$(sep) \
-		$(Q)$(call SYSTEM_RSYNC,$(d),$(LINUX_ARCH_PATH)/boot/dts/)$(sep))
+		$(Q)$(call SYSTEM_RSYNC,$(d),$(LINUX_SRC_ARCH_PATH)/boot/dts/)$(sep))
 endef
 endif
 
@@ -290,14 +290,18 @@ endif
 # for bzImage, arch/i386 and arch/x86_64 do not exist when copying the
 # defconfig file.
 ifeq ($(KERNEL_ARCH),i386)
-LINUX_ARCH_PATH = $(LINUX_DIR)/arch/x86
+LINUX_ARCH_SUBDIR = arch/x86
 else ifeq ($(KERNEL_ARCH),x86_64)
-LINUX_ARCH_PATH = $(LINUX_DIR)/arch/x86
+LINUX_ARCH_SUBDIR = arch/x86
 else ifeq ($(KERNEL_ARCH),sparc64)
-LINUX_ARCH_PATH = $(LINUX_DIR)/arch/sparc
+LINUX_ARCH_SUBDIR = arch/sparc
 else
-LINUX_ARCH_PATH = $(LINUX_DIR)/arch/$(KERNEL_ARCH)
+LINUX_ARCH_SUBDIR = arch/$(KERNEL_ARCH)
 endif
+# Build products (images, dtbs) are in the build directory, but the sources
+# of the kernel, to which custom files are added, may be elsewhere.
+LINUX_ARCH_PATH = $(LINUX_DIR)/$(LINUX_ARCH_SUBDIR)
+LINUX_SRC_ARCH_PATH = $(LINUX_SRCDIR)/$(LINUX_ARCH_SUBDIR)
 
 ifeq ($(BR2_LINUX_KERNEL_VMLINUX),y)
 LINUX_IMAGE_PATH = $(LINUX_DIR)/$(LINUX_IMAGE_NAME)
@@ -355,11 +359,27 @@ LINUX_KERNEL_CUSTOM_LOGO_PATH = $(call qstrip,$(BR2_LINUX_KERNEL_CUSTOM_LOGO_PAT
 ifneq ($(LINUX_KERNEL_CUSTOM_LOGO_PATH),)
 LINUX_DEPENDENCIES += host-imagemagick
 define LINUX_KERNEL_CUSTOM_LOGO_CONVERT
+	rm -f $(LINUX_SRCDIR)/drivers/video/logo/logo_linux_clut224.ppm
 	$(HOST_DIR)/bin/convert $(LINUX_KERNEL_CUSTOM_LOGO_PATH) \
 		-dither None -colors 224 -compress none \
-		$(LINUX_DIR)/drivers/video/logo/logo_linux_clut224.ppm
+		$(LINUX_SRCDIR)/drivers/video/logo/logo_linux_clut224.ppm
 endef
 LINUX_PRE_BUILD_HOOKS += LINUX_KERNEL_CUSTOM_LOGO_CONVERT
+endif
+
+# A custom logo or custom devicetree files are added to the kernel sources,
+# which we must not do in a source directory we do not own. In an out-of-tree
+# build, use a shadow of that directory instead: a tree of real directories
+# containing symlinks to the files, so that those can be replaced or added.
+ifneq ($(LINUX_OVERRIDE_SRCDIR),)
+ifneq ($(LINUX_KERNEL_CUSTOM_LOGO_PATH)$(LINUX_KERNEL_CUSTOM_DTS_DIR)$(LINUX_CUSTOM_DTS_PATH),)
+LINUX_OUT_OF_TREE_SRCDIR = $(BUILD_DIR)/linux-custom-src
+define LINUX_SHADOW_SRCDIR
+	@$(call MESSAGE,"Shadowing $(LINUX_OVERRIDE_SRCDIR) for custom files")
+	support/scripts/symlink-tree -F -l .git $(call qstrip,$(LINUX_OVERRIDE_SRCDIR)) $(LINUX_OUT_OF_TREE_SRCDIR)
+endef
+LINUX_PRE_RSYNC_HOOKS += LINUX_SHADOW_SRCDIR
+endif
 endif
 
 ifeq ($(BR2_LINUX_KERNEL_USE_DEFCONFIG),y)
@@ -560,7 +580,7 @@ endif
 define LINUX_BUILD_CMDS
 	$(call KCONFIG_DISABLE_OPT,CONFIG_GCC_PLUGINS)
 	$(foreach dts,$(call qstrip,$(BR2_LINUX_KERNEL_CUSTOM_DTS_PATH)), \
-		cp -f $(dts) $(LINUX_ARCH_PATH)/boot/dts/
+		cp -f --remove-destination $(dts) $(LINUX_SRC_ARCH_PATH)/boot/dts/
 	)
 	$(LINUX_COPY_CUSTOM_DTS_FILES)
 	$(LINUX_MAKE_ENV) $(BR2_MAKE) $(LINUX_MAKE_FLAGS) -C $(@D) all

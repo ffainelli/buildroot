@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+# Create a "shadow" of a source tree: a tree of real directories whose
+# files are symlinks to the files of the original tree. Files can then be
+# added to, or replaced in, the shadow, and objects can be built inside it,
+# without ever modifying the original tree.
+#
+# Usage: symlink-tree [-F] [-f NAME]... [-l NAME]... SRC DST
+#
+#   -F       shadow every top-level entry of SRC (default: a single symlink
+#            for each top-level entry)
+#   -f NAME  shadow the top-level directory NAME
+#   -l NAME  only symlink the top-level entry NAME, even with -F
+#
+# DST is wiped and re-created.
+
+set -e
+
+all=false
+farm=" "
+link=" "
+while getopts "Ff:l:" opt; do
+    case "${opt}" in
+    F) all=true ;;
+    f) farm="${farm}${OPTARG} " ;;
+    l) link="${link}${OPTARG} " ;;
+    *) exit 1 ;;
+    esac
+done
+shift $((OPTIND - 1))
+[ $# -eq 2 ] || { echo "usage: ${0##*/} [-F] [-f NAME]... [-l NAME]... SRC DST" >&2; exit 1; }
+
+src="$(readlink -f "${1}")"
+dst="${2}"
+
+# Refuse to wipe anything that does not look like a previous shadow, or
+# that could be (part of) the source tree.
+dst_abs="$(readlink -m "${dst}")"
+case "${src}/" in
+"${dst_abs}"/*) echo "${0##*/}: ${dst} contains the source tree" >&2; exit 1 ;;
+esac
+case "${dst_abs}/" in
+"${src}"/*) echo "${0##*/}: ${dst} is inside the source tree" >&2; exit 1 ;;
+esac
+
+rm -rf "${dst}"
+mkdir -p "${dst}"
+
+for path in "${src}"/* "${src}"/.[!.]* "${src}"/..?*; do
+    [ -e "${path}" ] || [ -L "${path}" ] || continue
+    name="${path##*/}"
+    if [ -d "${path}" ] && [ ! -L "${path}" ] && [[ "${link}" != *" ${name} "* ]] &&
+       { ${all} || [[ "${farm}" == *" ${name} "* ]]; }; then
+        cp -rs "${path}" "${dst}/"
+    else
+        ln -s "${path}" "${dst}/${name}"
+    fi
+done

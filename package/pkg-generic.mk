@@ -575,7 +575,10 @@ $(2)_STAMP_SRCDIR = $$($(2)_SRCDIR)
 ifneq ($$($(2)_OVERRIDE_SRCDIR),)
 ifeq ($$($(3)_SUPPORTS_OUT_OF_TREE),YES)
 $(2)_OUT_OF_TREE = YES
-$(2)_SRCDIR = $$(abspath $$(call qstrip,$$($(2)_OVERRIDE_SRCDIR)))
+# A package may need to add files to its sources, which must not be done in
+# the overridden directory: it can then set <pkg>_OUT_OF_TREE_SRCDIR to
+# a shadow of the sources (see support/scripts/symlink-tree).
+$(2)_SRCDIR = $$(or $$($(3)_OUT_OF_TREE_SRCDIR),$$(abspath $$(call qstrip,$$($(2)_OVERRIDE_SRCDIR))))
 $(2)_STAMP_SRCDIR = $$($(2)_BUILDDIR)
 endif
 endif
