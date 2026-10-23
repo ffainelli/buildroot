@@ -96,10 +96,10 @@ $(2)_EXTRACT_DEPENDENCIES += host-luarocks
 #
 ifndef $(2)_EXTRACT_CMDS
 define $(2)_EXTRACT_CMDS
-	mkdir -p $$($(2)_DIR)/luarocks-extract
-	cd $$($(2)_DIR)/luarocks-extract && \
+	mkdir -p $$($(2)_SRCDIR)/luarocks-extract
+	cd $$($(2)_SRCDIR)/luarocks-extract && \
 		$$(LUAROCKS_RUN_CMD) unpack --force $$($(2)_DL_DIR)/$$($(2)_SOURCE)
-	mv $$($(2)_DIR)/luarocks-extract/*/* $$($(2)_DIR)
+	mv $$($(2)_SRCDIR)/luarocks-extract/*/* $$($(2)_SRCDIR)
 endef
 endif
 

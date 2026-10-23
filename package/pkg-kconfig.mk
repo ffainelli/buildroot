@@ -23,8 +23,8 @@ define kconfig-package-update-config
 		exit 1; \
 	fi
 	$(Q)mkdir -p $(dir $($(PKG)_KCONFIG_FILE))
-	cp -f $($(PKG)_DIR)/$(1) $($(PKG)_KCONFIG_FILE)
-	$(Q)touch --reference $($(PKG)_DIR)/$($(PKG)_KCONFIG_STAMP_DOTCONFIG) $($(PKG)_KCONFIG_FILE)
+	cp -f $($(PKG)_BUILDDIR)/$(1) $($(PKG)_KCONFIG_FILE)
+	$(Q)touch --reference $($(PKG)_BUILDDIR)/$($(PKG)_KCONFIG_STAMP_DOTCONFIG) $($(PKG)_KCONFIG_FILE)
 endef
 
 PKG_KCONFIG_COMMON_OPTS = \
@@ -117,8 +117,8 @@ endif
 
 # Call the generic package infrastructure to generate the necessary
 # make targets.
-# Note: this must be done _before_ attempting to use $$($(2)_DIR) in a
-# dependency expression
+# Note: this must be done _before_ attempting to use either $$($(2)_SRCDIR)
+# or $$($(2)_BUILDDIR) in a dependency expression
 $(call inner-generic-package,$(1),$(2),$(3),$(4))
 
 # Do not use $(2)_KCONFIG_DOTCONFIG as stamp file, because the package
@@ -148,23 +148,23 @@ $$($(2)_KCONFIG_FILE) $$($(2)_KCONFIG_FRAGMENT_FILES): | $(1)-patch
 	done
 
 $(2)_KCONFIG_MAKE = \
-	$$($(2)_MAKE_ENV) $$($(2)_MAKE) -C $$($(2)_DIR) \
+	$$($(2)_MAKE_ENV) $$($(2)_MAKE) -C $$($(2)_BUILDDIR) \
 		$$(PKG_KCONFIG_COMMON_OPTS) $$($(2)_KCONFIG_OPTS)
 
 # The specified source configuration file and any additional configuration file
 # fragments are merged together to .config, after the package has been patched.
 # Since the file could be a defconfig file it needs to be expanded to a
 # full .config first.
-$$($(2)_DIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG): $$($(2)_KCONFIG_FILE) $$($(2)_KCONFIG_FRAGMENT_FILES)
+$$($(2)_BUILDDIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG): $$($(2)_KCONFIG_FILE) $$($(2)_KCONFIG_FRAGMENT_FILES)
 	$$(call prepare-per-package-directory,$$($(2)_KCONFIG_DEPENDENCIES))
 	$$(call kconfig-package-merge-config,$(2),$$(@D)/$$($(2)_KCONFIG_DOTCONFIG),\
 		$$($(2)_KCONFIG_FRAGMENT_FILES))
-	$$(Q)touch $$(@D)/$$($(2)_KCONFIG_STAMP_DOTCONFIG)
+	$$(Q)touch $$($(2)_BUILDDIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG)
 
 # If _KCONFIG_FILE or _KCONFIG_FRAGMENT_FILES exists, this dependency is
 # already implied, but if we only have a _KCONFIG_DEFCONFIG we have to add
 # it explicitly. It doesn't hurt to always have it though.
-$$($(2)_DIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG): | $(1)-patch
+$$($(2)_BUILDDIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG): | $(1)-patch
 
 # Some packages may need additional tools to be present by the time their
 # kconfig structure is parsed (e.g. the linux kernel may need to call to
@@ -176,21 +176,21 @@ $$($(2)_DIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG): | $$($(2)_KCONFIG_DEPENDENCIES)
 define $(2)_FIXUP_DOT_CONFIG
 	$$($(2)_KCONFIG_FIXUP_CMDS)
 	$$(call kconfig-package-regen-dot-config,$(2))
-	$$(Q)touch $$($(2)_DIR)/.stamp_kconfig_fixup_done
+	$$(Q)touch $$($(2)_BUILDDIR)/.stamp_kconfig_fixup_done
 endef
 
-$$($(2)_DIR)/.stamp_kconfig_fixup_done: PKG=$(2)
-$$($(2)_DIR)/.stamp_kconfig_fixup_done: $$($(2)_DIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG)
+$$($(2)_BUILDDIR)/.stamp_kconfig_fixup_done: PKG=$(2)
+$$($(2)_BUILDDIR)/.stamp_kconfig_fixup_done: $$($(2)_BUILDDIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG)
 	$$($(2)_FIXUP_DOT_CONFIG)
 
 # Before running configure, the configuration file should be present and fixed
-$$($(2)_TARGET_CONFIGURE): $$($(2)_DIR)/.stamp_kconfig_fixup_done
+$$($(2)_TARGET_CONFIGURE): $$($(2)_BUILDDIR)/.stamp_kconfig_fixup_done
 
 # Force olddefconfig again on -reconfigure
 $(1)-clean-for-reconfigure: $(1)-clean-kconfig-for-reconfigure
 
 $(1)-clean-kconfig-for-reconfigure:
-	rm -f $$($(2)_DIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG)
+	rm -f $$($(2)_BUILDDIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG)
 
 # Only enable the foo-*config targets when the package is actually enabled.
 # Note: the variable $(2)_KCONFIG_VAR is not related to the kconfig
@@ -236,18 +236,18 @@ $(2)_CONFIGURATOR_MAKE_ENV = \
 # with a stamp-like file which path is in the package build dir, so we
 # end up having a valid @D.
 #
-$$(addprefix $(1)-,$$($(2)_KCONFIG_EDITORS)): $(1)-%: $$($(2)_DIR)/.kconfig_editor_%
-$$($(2)_DIR)/.kconfig_editor_%: PKG=$(2)
-$$($(2)_DIR)/.kconfig_editor_%: $$($(2)_DIR)/.stamp_kconfig_fixup_done
-	$$($(2)_CONFIGURATOR_MAKE_ENV) $$($(2)_MAKE) -C $$($(2)_DIR) \
+$$(addprefix $(1)-,$$($(2)_KCONFIG_EDITORS)): $(1)-%: $$($(2)_BUILDDIR)/.kconfig_editor_%
+$$($(2)_BUILDDIR)/.kconfig_editor_%: PKG=$(2)
+$$($(2)_BUILDDIR)/.kconfig_editor_%: $$($(2)_BUILDDIR)/.stamp_kconfig_fixup_done
+	$$($(2)_CONFIGURATOR_MAKE_ENV) $$($(2)_MAKE) -C $$($(2)_BUILDDIR) \
 		$$(PKG_KCONFIG_COMMON_OPTS) $$($(2)_KCONFIG_OPTS) $$(*)
-	rm -f $$($(2)_DIR)/.stamp_{kconfig_fixup_done,configured,built}
-	rm -f $$($(2)_DIR)/.stamp_{target,staging,images}_installed
+	rm -f $$($(2)_BUILDDIR)/.stamp_{kconfig_fixup_done,configured,built}
+	rm -f $$($(2)_BUILDDIR)/.stamp_{target,staging,images}_installed
 	$$($(2)_FIXUP_DOT_CONFIG)
 
 # Saving back the configuration
 #
-# Ideally, that should directly depend on $$($(2)_DIR)/.stamp_kconfig_fixup_done,
+# Ideally, that should directly depend on $$($(2)_BUILDDIR)/.stamp_kconfig_fixup_done,
 # but that breaks the use-case in PR-8156 (from a clean tree):
 #   make menuconfig           <- enable kernel, use an in-tree defconfig, save and exit
 #   make linux-menuconfig     <- enable/disable whatever option, save and exit
@@ -262,7 +262,7 @@ $$($(2)_DIR)/.kconfig_editor_%: $$($(2)_DIR)/.stamp_kconfig_fixup_done
 # Instead, we use a PHONY rule that will catch that situation.
 #
 $(1)-check-configuration-done:
-	@if [ ! -f $$($(2)_DIR)/.stamp_kconfig_fixup_done ]; then \
+	@if [ ! -f $$($(2)_BUILDDIR)/.stamp_kconfig_fixup_done ]; then \
 		echo "$(1) is not yet configured"; \
 		exit 1; \
 	fi
@@ -316,7 +316,7 @@ endif # package enabled
 .PHONY: \
 	$(1)-diff-config \
 	$(1)-check-configuration-done \
-	$$($(2)_DIR)/.kconfig_editor_% \
+	$$($(2)_BUILDDIR)/.kconfig_editor_% \
 	$$(addprefix $(1)-,$$($(2)_KCONFIG_EDITORS))
 
 endef # inner-kconfig-package
