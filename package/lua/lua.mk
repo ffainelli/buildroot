@@ -66,11 +66,16 @@ endif
 endif
 
 ifeq ($(BR2_PACKAGE_LUA_32BITS),y)
+# We adjust the CFLAGS for the build of Lua itself, and then the
+# installed luaconf.h so that package using Lua also see LUA_32BITS
+# defined.
+LUA_CFLAGS += -DLUA_32BITS
 define LUA_32BITS_LUACONF
-	$(SED) 's/\/\* #define LUA_32BITS \*\//#define LUA_32BITS/' $(@D)/src/luaconf.h
+	$(SED) 's/\/\* #define LUA_32BITS \*\//#define LUA_32BITS/' \
+		$(STAGING_DIR)/usr/include/luaconf.h
 endef
 
-LUA_POST_PATCH_HOOKS += LUA_32BITS_LUACONF
+LUA_POST_INSTALL_STAGING_HOOKS += LUA_32BITS_LUACONF
 endif
 
 define HOST_LUA_LUACONF
